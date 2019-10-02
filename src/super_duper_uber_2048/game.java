@@ -1,4 +1,4 @@
-package auto_2048;
+package super_duper_uber_2048;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -16,44 +16,57 @@ public class game {
 		int game_over = 0;
 		while (game_over == 0) {
 			if (add_random() == 1) {
-				System.out.println("Score: " + get_matrix_score() + "\n");
-				print_matrix();
-				System.out.println("-----------------\n");
-				// lese User Input
-				int open_scanner = 1;
-				while (open_scanner == 1) {
-					char input = 'o';
-					System.out.print("Please enter your next move (w, a, s, d): ");
-					Scanner in = new Scanner(System.in);
-					input = in.next().charAt(0);
-					if (input == 'w') {
-						open_scanner = 0;
-						master_matrix_shifter("to_top");
-					} else if (input == 'a') {
-						open_scanner = 0;
-						master_matrix_shifter("to_left");
-					} else if (input == 's') {
-						open_scanner = 0;
-						master_matrix_shifter("to_bottom");
-					} else if (input == 'd') {
-						open_scanner = 0;
-						master_matrix_shifter("to_right");
+				if (is_game_over() == 0) {
+					System.out.println("Score: " + get_matrix_score() + "\n");
+					print_matrix();
+					System.out.println("-----------------\n");
+					// read user input
+					int open_scanner = 1;
+					while (open_scanner == 1) {
+						String input = "";
+						System.out.print("Please enter your next move (w, a, s, d): ");
+						Scanner in = new Scanner(System.in);
+						input = in.nextLine();
+						if (input.equals("w")) {
+							if (is_move_possible("to_top") == 1) {
+								master_matrix_shifter("to_top");
+								open_scanner = 0;
+							}
+						} else if (input.equals("a")) {
+							if (is_move_possible("to_left") == 1) {
+								master_matrix_shifter("to_left");
+								open_scanner = 0;
+							}
+						} else if (input.equals("s")) {
+							if (is_move_possible("to_bottom") == 1) {
+								master_matrix_shifter("to_bottom");
+								open_scanner = 0;
+							}
+						} else if (input.equals("d")) {
+							if (is_move_possible("to_right") == 1) {
+								open_scanner = 0;
+								master_matrix_shifter("to_right");
+							}
+						}
 					}
+				} else {
+					game_over = 1;
 				}
 			} else {
 				game_over = 1;
-				System.out.println("Score: " + get_matrix_score() + "\n");
-				print_matrix();
-				System.out.println("\nGAME OVER");
 			}
 		}
-		
+		// GAME OVER
+		System.out.println("Score: " + get_matrix_score() + "\n");
+		print_matrix();
+		System.out.println("-----------------\n");
+		System.out.println("\nGAME OVER");
 		System.out.println("\n=================\nRUNTIME: " + ((System.currentTimeMillis() - timer_start) / 1000.0) + " s");
 	}
 	
 	
 	public static int add_random() {
-		if (matrix_full() == 1) {
+		if (is_matrix_full() == 1) {
 			// Wenn jeder Slot der Matrix voll -> Game Over
 			return 0;
 		} else {
@@ -110,13 +123,47 @@ public class game {
 	}
 	
 	
+	public static void print_matrix(int[][] input_matrix) {
+		// find largest number
+		int max_length = 0;
+		for (int i=0; i<matrix_zeilen; i++) {
+			for (int j=0; j<matrix_spalten; j++) {
+				if (max_length < Integer.toString(input_matrix[i][j]).length()) {
+					max_length = Integer.toString(input_matrix[i][j]).length();
+				}
+			}
+		}
+		// pretty print
+		for (int i=0; i<matrix_zeilen; i++) {
+			System.out.print("|");
+			for (int j=0; j<matrix_spalten; j++) {
+				String current = Integer.toString(input_matrix[i][j]);
+				// replace "0" with "." for more readability
+				if (current.equals("0")) {
+					current = ".";
+				}
+				// equallize length for largest appearing number
+				while (current.length() < (max_length + 2)) {	// '+2' for spacer between columns
+					current = " " + current;
+				}
+				// print in orderly fashion
+				if (j == matrix_spalten-1) {
+					System.out.println(current + " |");
+				} else {
+					System.out.print(current);
+				}
+			}
+		}
+	}
+	
+	
 	public static int get_random(int range) {
 		// return random int in range 0...'range'-1
 		return (int)(Math.random() * range);
 	}
 	
 	
-	public static int matrix_full() {
+	public static int is_matrix_full() {
 		int full_space_counter = 0;
 		// zähle wie viele Felder der Matrix einen Wert haben
 		for (int i=0; i<matrix_zeilen; i++) {
@@ -136,10 +183,22 @@ public class game {
 	}
 	
 	
+	public static int is_game_over() {
+		if (is_move_possible("to_right") == 1 || is_move_possible("to_left") == 1 || is_move_possible("to_top") == 1 || is_move_possible("to_bottom") == 1) {
+			// at least one move is possible and thus the game is not over
+			return 0;
+		} else {
+			// no move is possible and thus the game is over
+			return 1;
+		}
+	}
+	
+	
 	public static int get_matrix_score() {
 		int score = 0;
 		for (int i=0; i<matrix_zeilen; i++) {
 			for (int j=0; j<matrix_spalten; j++) {
+				// count all values together
 				score += main_matrix[i][j];
 			}
 		}
@@ -157,7 +216,7 @@ public class game {
 			}
 		}
 		int iterator = 0;
-		while (!Arrays.deepEquals(current_matrix, last_matrix)/*current_matrix.equals(last_matrix)*/) {
+		while (!Arrays.deepEquals(current_matrix, last_matrix)) {
 			// 2. copy current_matrix into last_matrix
 			for (int i=0; i<matrix_zeilen; i++) {
 				for (int j=0; j<matrix_spalten; j++) {
@@ -165,7 +224,6 @@ public class game {
 				}
 			}
 			// 3. shift current_matrix
-			// call slave_matrix_shifter(current_matrix[][], "to_right")
 			current_matrix = slave_matrix_shifter(current_matrix, direction);
 			
 		}
@@ -178,7 +236,15 @@ public class game {
 	}
 	
 	
-	public static int[][] slave_matrix_shifter(int[][] current_matrix, String direction) {
+	public static int[][] slave_matrix_shifter(int[][] input_matrix, String direction) {
+		// undergo pass by reference errors
+		int[][] current_matrix = new int[matrix_zeilen][matrix_spalten];
+		for (int i=0; i<matrix_zeilen; i++) {
+			for (int j=0; j<matrix_spalten; j++) {
+				current_matrix[i][j] = input_matrix[i][j];
+			}
+		}
+		// shifting operation
 		if (direction.equals("to_left")) {
 			// laufe spalten von der zweit-ersten spalte aus durch bis zur letzten spalte
 			for (int j=1; j<matrix_spalten; j++) {
@@ -236,9 +302,22 @@ public class game {
 					}
 				}
 			}
+		} else {
+			System.out.println("\n=================\nslave_matrix_shifter got wrong direction value: " + direction);
 		}
 		// return shifted matrix
 		return current_matrix;
+	}
+	
+	
+	public static int is_move_possible(String direction) {
+		if (Arrays.deepEquals(main_matrix, slave_matrix_shifter(main_matrix, direction))) {
+			// orig matrix and once shifted matrix are equal and thus move not possible
+			return 0;
+		} else {
+			// orig matrix and once shifted matrix are not equal and thus move is possible
+			return 1;
+		}
 	}
 
 }
