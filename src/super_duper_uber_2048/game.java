@@ -209,13 +209,13 @@ public class game {
 	public static void master_matrix_shifter(String direction) {
 		int[][] current_matrix = new int[matrix_zeilen][matrix_spalten];
 		int[][] last_matrix = new int[matrix_zeilen][matrix_spalten];
+		int[][] transform_matrix = new int[matrix_zeilen][matrix_spalten];
 		// 1. copy main_matrix into current_matrix
 		for (int i=0; i<matrix_zeilen; i++) {
 			for (int j=0; j<matrix_spalten; j++) {
 				current_matrix[i][j] = main_matrix[i][j];
 			}
 		}
-		int iterator = 0;
 		while (!Arrays.deepEquals(current_matrix, last_matrix)) {
 			// 2. copy current_matrix into last_matrix
 			for (int i=0; i<matrix_zeilen; i++) {
@@ -224,7 +224,7 @@ public class game {
 				}
 			}
 			// 3. shift current_matrix
-			current_matrix = slave_matrix_shifter(current_matrix, direction);
+			current_matrix = slave_matrix_shifter(current_matrix, direction, transform_matrix);
 			
 		}
 		// 4. if current_matrix is equal to last_matrix, copy current_matrix into main_matrix
@@ -236,7 +236,7 @@ public class game {
 	}
 	
 	
-	public static int[][] slave_matrix_shifter(int[][] input_matrix, String direction) {
+	public static int[][] slave_matrix_shifter(int[][] input_matrix, String direction, int[][] transform_matrix) {
 		// undergo pass by reference errors
 		int[][] current_matrix = new int[matrix_zeilen][matrix_spalten];
 		for (int i=0; i<matrix_zeilen; i++) {
@@ -254,8 +254,11 @@ public class game {
 						current_matrix[i][j-1] = current_matrix[i][j];
 						current_matrix[i][j] = 0;
 					} else if (current_matrix[i][j-1] == current_matrix[i][j]) {
-						current_matrix[i][j-1] = current_matrix[i][j-1] + current_matrix[i][j];
-						current_matrix[i][j] = 0;
+						if (transform_matrix[i][j-1] == 0 && transform_matrix[i][j] == 0) {
+							current_matrix[i][j-1] = current_matrix[i][j-1] + current_matrix[i][j];
+							transform_matrix[i][j-1] = 1;
+							current_matrix[i][j] = 0;
+						}
 					}
 				}
 			}
@@ -268,8 +271,11 @@ public class game {
 						current_matrix[i][j+1] = current_matrix[i][j];
 						current_matrix[i][j] = 0;
 					} else if (current_matrix[i][j+1] == current_matrix[i][j]) {
-						current_matrix[i][j+1] = current_matrix[i][j+1] + current_matrix[i][j];
-						current_matrix[i][j] = 0;
+						if (transform_matrix[i][j+1] == 0 && transform_matrix[i][j] == 0) {
+							current_matrix[i][j+1] = current_matrix[i][j+1] + current_matrix[i][j];
+							transform_matrix[i][j+1] = 1;
+							current_matrix[i][j] = 0;
+						}
 					}
 				}
 			}
@@ -282,8 +288,11 @@ public class game {
 						current_matrix[i-1][j] = current_matrix[i][j];
 						current_matrix[i][j] = 0;
 					} else if (current_matrix[i-1][j] == current_matrix[i][j]) {
-						current_matrix[i-1][j] = current_matrix[i-1][j] + current_matrix[i][j];
-						current_matrix[i][j] = 0;
+						if (transform_matrix[i-1][j] == 0 && transform_matrix[i][j] == 0) {
+							current_matrix[i-1][j] = current_matrix[i-1][j] + current_matrix[i][j];
+							transform_matrix[i-1][j] = 1;
+							current_matrix[i][j] = 0;
+						}
 					}
 				}
 			}
@@ -297,8 +306,11 @@ public class game {
 						current_matrix[i+1][j] = current_matrix[i][j];
 						current_matrix[i][j] = 0;
 					} else if (current_matrix[i+1][j] == current_matrix[i][j]) {
-						current_matrix[i+1][j] = current_matrix[i+1][j] + current_matrix[i][j];
-						current_matrix[i][j] = 0;
+						if (transform_matrix[i+1][j] == 0 && transform_matrix[i][j] == 0) {
+							current_matrix[i+1][j] = current_matrix[i+1][j] + current_matrix[i][j];
+							transform_matrix[i+1][j] = 1;
+							current_matrix[i][j] = 0;
+						}
 					}
 				}
 			}
@@ -311,7 +323,7 @@ public class game {
 	
 	
 	public static int is_move_possible(String direction) {
-		if (Arrays.deepEquals(main_matrix, slave_matrix_shifter(main_matrix, direction))) {
+		if (Arrays.deepEquals(main_matrix, slave_matrix_shifter(main_matrix, direction, new int[matrix_zeilen][matrix_spalten]))) {
 			// orig matrix and once shifted matrix are equal and thus move not possible
 			return 0;
 		} else {
